@@ -1,1 +1,65 @@
-あ
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3択問題PDF作成</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="card hidden-print">
+      <h1>3択問題PDF作成ツール(画像表示版)</h1>
+      <div class="small">CSVから問題を読み込み、問題PDFと解答PDFを作成できます。</div>
+    </div>
+
+    <div class="card hidden-print">
+      <div class="grid">
+        <div>
+          <label>タイトル</label>
+          <input id="titleInput" value="" placeholder="未入力ならCSVのタイトルを使用" />
+        </div>
+        <div>
+          <label>作成問題数</label>
+          <input id="countInput" type="number" min="1" value="5" />
+        </div>
+        <div>
+          <label>CSV読み込み</label>
+          <input id="csvFileInput" type="file" accept=".csv,text/csv" />
+        </div>
+      </div>
+
+      <div class="row top-buttons">
+        <button id="loadBtn">GitHub上のCSVを読み込む</button>
+        <button id="makeBtn" class="success">問題を作成</button>
+        <button id="printQuestionsBtn" class="secondary">問題を印刷/PDF保存</button>
+        <button id="printAnswersBtn" class="secondary">解答を印刷/PDF保存</button>
+      </div>
+
+      <div id="status" class="small">まだ読み込んでいません。</div>
+    </div>
+ <div class="select-buttons">
+  <button type="button" id="selectAllBtn">全選択</button>
+  <button type="button" id="clearAllBtn" class="secondary">全解除</button>
+   <button type="button" id="resetBtn" class="danger">初期化</button>
+</div>
+    <div class="card hidden-print">
+      <h2>出題するタイトルを選択</h2>
+      <div id="titleCheckList" class="checklist-box">
+        まだ読み込んでいません。
+      </div>
+    </div>
+   
+
+    <div class="card">
+      <h2 class="hidden-print">プレビュー</h2>
+      <div id="paperArea" class="preview-sheet">
+        <div>まだ作成していません。</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
