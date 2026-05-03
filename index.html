@@ -3,30 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3択問題PDF作成</title>
+  <title>検定3級 問題作成ツール</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="wrap">
+
+    <!-- タイトル -->
     <div class="card hidden-print">
-      <h1>3択問題PDF作成ツール(画像表示版)</h1>
-      <div class="small">CSVから問題を読み込み、問題PDFと解答PDFを作成できます。</div>
+      <h1>検定3級 問題作成ツール（画像対応）</h1>
+      <div class="small">
+        CSVから問題を読み込み、大問ごとに1問ずつ出題してPDFを作成します。
+      </div>
     </div>
 
+    <!-- 操作エリア -->
     <div class="card hidden-print">
       <div class="grid">
+
         <div>
-          <label>タイトル</label>
-          <input id="titleInput" value="" placeholder="未入力ならCSVのタイトルを使用" />
+          <label>テストタイトル</label>
+          <input id="titleInput" value="検定3級" />
         </div>
+
         <div>
-          <label>作成問題数</label>
-          <input id="countInput" type="number" min="1" value="5" />
+          <label>出題数（自動）</label>
+          <input id="countInput" type="number" value="10" disabled />
         </div>
+
         <div>
           <label>CSV読み込み</label>
           <input id="csvFileInput" type="file" accept=".csv,text/csv" />
         </div>
+
       </div>
 
       <div class="row top-buttons">
@@ -38,28 +47,36 @@
 
       <div id="status" class="small">まだ読み込んでいません。</div>
     </div>
- <div class="select-buttons">
-  <button type="button" id="selectAllBtn">全選択</button>
-  <button type="button" id="clearAllBtn" class="secondary">全解除</button>
-   <button type="button" id="resetBtn" class="danger">初期化</button>
-</div>
+
+    <!-- 大問選択 -->
+    <div class="select-buttons hidden-print">
+      <button type="button" id="selectAllBtn">全選択</button>
+      <button type="button" id="clearAllBtn" class="secondary">全解除</button>
+      <button type="button" id="resetBtn" class="danger">初期化</button>
+    </div>
+
     <div class="card hidden-print">
-      <h2>出題するタイトルを選択</h2>
+      <h2>出題する大問を選択</h2>
       <div id="titleCheckList" class="checklist-box">
         まだ読み込んでいません。
       </div>
     </div>
-   
 
+    <!-- プレビュー -->
     <div class="card">
       <h2 class="hidden-print">プレビュー</h2>
       <div id="paperArea" class="preview-sheet">
         <div>まだ作成していません。</div>
       </div>
     </div>
+
   </div>
 
+  <!-- PDFライブラリ -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="app.js"></script>
+
+  <!-- メイン処理 -->
+  <script src="app.js"></script>
+
 </body>
 </html>
