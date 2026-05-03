@@ -101,6 +101,7 @@ function parseCsv(text) {
   }
 
   const headers = rows.shift() || [];
+
   return rows
     .map((r) => {
       const obj = {};
@@ -114,15 +115,16 @@ function parseCsv(text) {
 
 function normalizeRow(r) {
   const rawChoices = [];
-  for (let n = 1; n <= 10; n++) {
+
+  for (let n = 1; n <= 5; n++) {
     rawChoices.push((r[`choice${n}`] || "").trim());
   }
 
   const choices = rawChoices.filter((v) => v !== "");
   const answerNo = Number(r.answer_no);
 
-  if (!r.question || choices.length < 3) return null;
-  if (!(answerNo >= 1 && answerNo <= 10)) return null;
+  if (!r.question || choices.length < 2) return null;
+  if (!(answerNo >= 1 && answerNo <= 5)) return null;
   if (!rawChoices[answerNo - 1]) return null;
 
   const correctText = rawChoices[answerNo - 1];
@@ -148,7 +150,7 @@ function makeTitleKey(q) {
 
 function renderTitleCheckList(rows) {
   if (!rows.length) {
-    titleCheckList.innerHTML = "表示できるタイトルがありません。";
+    titleCheckList.innerHTML = "表示できる大問がありません。";
     return;
   }
 
@@ -156,14 +158,18 @@ function renderTitleCheckList(rows) {
 
   rows.forEach((q) => {
     const key = makeTitleKey(q);
+
     if (!uniqueMap.has(key)) {
       uniqueMap.set(key, {
         key,
         field_no: q.field_no,
         title_no: q.title_no,
         title: q.title,
+        count: 0,
       });
     }
+
+    uniqueMap.get(key).count++;
   });
 
   const list = [...uniqueMap.values()].sort((a, b) =>
@@ -175,7 +181,10 @@ function renderTitleCheckList(rows) {
       (item) => `
       <label class="check-item">
         <input type="checkbox" class="title-check" value="${escapeHtml(item.key)}" checked>
-        <span>${escapeHtml(item.field_no)}：${escapeHtml(item.title)}（タイトル番号 ${escapeHtml(item.title_no)}）</span>
+        <span>
+          ${escapeHtml(item.field_no)}：${escapeHtml(item.title)}
+          （大問番号 ${escapeHtml(item.title_no)}／${item.count}パターン）
+        </span>
       </label>
     `
     )
@@ -193,47 +202,41 @@ function makeQuiz() {
   }
 
   const selectedTitleKeys = getSelectedTitleKeys();
+
   if (!selectedTitleKeys.length) {
-    statusEl.textContent = "タイトルを1つ以上選んでください。";
+    statusEl.textContent = "出題する大問を1つ以上選んでください。";
     return;
   }
 
   const inputTitle = $("titleInput").value.trim();
-  const count = Math.max(1, Number($("countInput").value || 5));
 
-  const pool = allQuestions.filter((q) => selectedTitleKeys.includes(makeTitleKey(q)));
+  const selectedQuestions = [];
 
-  if (pool.length < count) {
-    statusEl.textContent = `対象問題が不足しています。現在 ${pool.length}問、必要 ${count}問です。`;
-    return;
-  }
+  selectedTitleKeys.forEach((key) => {
+    const group = allQuestions.filter((q) => makeTitleKey(q) === key);
 
-  generated = shuffle([...pool])
-    .slice(0, count)
-    .map((q, i) => buildQuestion(q, i + 1));
+    if (group.length > 0) {
+      const picked = shuffle([...group])[0];
+      selectedQuestions.push(picked);
+    }
+  });
 
-  const uniqueTitles = [...new Set(generated.map((q) => q.title).filter(Boolean))];
-  const csvTitle = uniqueTitles.join("・");
-  currentTitle = inputTitle || csvTitle || "小テスト";
+  generated = selectedQuestions.map((q, i) => buildQuestion(q, i + 1));
+
+  currentTitle = inputTitle || "検定3級";
 
   renderPaper(currentTitle, generated, "answer");
+
   statusEl.textContent = `${currentTitle} を ${generated.length}問作成しました。`;
 }
 
 function buildQuestion(q, no) {
-  const wrongIndexes = q.choices
-    .map((_, i) => i)
-    .filter((i) => i !== q.answerIndex);
+  const labels = ["ア", "イ", "ウ", "エ", "オ"];
 
-  const pickedWrong = shuffle([...wrongIndexes]).slice(0, 2);
-  const shownIndexes = shuffle([q.answerIndex, ...pickedWrong]);
-
-  const shownChoices = shownIndexes.map((idx) => ({
+  const shownChoices = q.choices.map((text, idx) => ({
     originalIndex: idx,
-    text: q.choices[idx],
+    text,
   }));
-
-  const correctDisplayIndex = shownIndexes.indexOf(q.answerIndex);
 
   return {
     no,
@@ -244,13 +247,14 @@ function buildQuestion(q, no) {
     image: q.image,
     question: q.question,
     shownChoices,
-    correctDisplayIndex,
+    correctDisplayIndex: q.answerIndex,
     correctText: q.choices[q.answerIndex],
+    labels,
   };
 }
 
 function renderPaper(title, items, mode = "answer") {
-  const labels = ["ア", "イ", "ウ"];
+  const labels = ["ア", "イ", "ウ", "エ", "オ"];
   const pages = [];
 
   for (let i = 0; i < items.length; i += PAGE_SIZE) {
@@ -301,8 +305,8 @@ function renderQuestions(items, labels, mode) {
           <div class="answer-box ${mode === "answer" ? "answer-box-filled answer-red" : ""}">
             ${mode === "answer" ? labels[item.correctDisplayIndex] : ""}
           </div>
-          <div class="question-main">
 
+          <div class="question-main">
             ${
               item.image
                 ? `
@@ -341,7 +345,7 @@ async function savePdf(mode) {
   }
 
   renderPaper(currentTitle, generated, mode);
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 600));
 
   const filename =
     mode === "question"
@@ -420,7 +424,7 @@ function resetAll() {
   currentTitle = "";
 
   $("titleInput").value = "";
-  $("countInput").value = 5;
+  $("countInput").value = 10;
   $("csvFileInput").value = "";
 
   titleCheckList.innerHTML = "まだ読み込んでいません。";
